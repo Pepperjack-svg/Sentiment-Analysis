@@ -2,11 +2,11 @@
 import os
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, redirect, url_for, Response
 from collections import deque
 from datetime import datetime
 from typing import List
-import threading
+import threading, json
 
 # our modules
 from modules.io_csv import read_csv_flex, clean_text
@@ -45,10 +45,24 @@ def clear_recent():
     with _RECENT_LOCK:
         _RECENT.clear()
 
+# ===== Cache of last results shown (for download) =====
+_LAST_LOCK = threading.Lock()
+_LAST_RESULTS: List[dict] = []
+
+def set_last_results(items: List[dict]):
+    global _LAST_RESULTS
+    with _LAST_LOCK:
+        _LAST_RESULTS = list(items)
+
+def get_last_results() -> List[dict]:
+    with _LAST_LOCK:
+        return list(_LAST_RESULTS)
+
 # ===== Routes =====
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html", results=None, messages=[], recent=snapshot_recent(20))
+    return render_template("index.html", results=None, messages=[], recent=snapshot_recent(500000))
+
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -72,12 +86,14 @@ def analyze():
 
     try:
         results = analyze_many(texts)
+        set_last_results(results)     # <-- save current results for download
         add_to_recent(results)
     except Exception as e:
         messages.append(f"Failed to analyze: {e}")
         results = []
 
-    return render_template("index.html", results=results, messages=messages, recent=snapshot_recent(20))
+    return render_template("index.html", results=results, messages=messages, recent=snapshot_recent(500000))
+
 
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
@@ -88,6 +104,7 @@ def api_analyze():
             if not texts:
                 return jsonify({"ok": False, "error": "No non-empty texts provided."}), 400
             out = analyze_many(texts)
+            set_last_results(out)      # make downloadable via UI too
             add_to_recent(out)
             return jsonify({"ok": True, "count": len(out), "data": out})
         elif "text" in data:
@@ -95,6 +112,7 @@ def api_analyze():
             if not t:
                 return jsonify({"ok": False, "error": "Text is empty."}), 400
             out = analyze_many([t])[0]
+            set_last_results([out])    # make downloadable via UI too
             add_to_recent([out])
             return jsonify({"ok": True, "data": out})
         else:
@@ -116,6 +134,33 @@ def recent_clear():
     if request.headers.get("Accept", "").startswith("text/html"):
         return redirect(url_for("index"))
     return jsonify({"ok": True, "message": "Recent feed cleared."})
+
+# ----- Pretty JSON download endpoints -----
+@app.route("/download/results.json", methods=["GET"])
+def download_results_json():
+    data = get_last_results() or []
+    pretty = json.dumps(data, ensure_ascii=False, indent=2)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return Response(
+        pretty,
+        mimetype="application/json; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="results-{ts}.json"'}
+    )
+
+@app.route("/download/recent.json", methods=["GET"])
+def download_recent_json():
+    try:
+        limit = int(request.args.get("limit", "500"))
+    except ValueError:
+        limit = 500
+    data = snapshot_recent(limit)
+    pretty = json.dumps(data, ensure_ascii=False, indent=2)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return Response(
+        pretty,
+        mimetype="application/json; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="recent-{ts}.json"'}
+    )
 
 @app.route("/json", methods=["GET"])
 def json_hint():
