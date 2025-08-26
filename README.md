@@ -2,8 +2,6 @@
 
 Analyze customer feedback with three pretrained NLP models—sentiment, star rating, and emotion—via a simple Flask web UI and a JSON API.
 
-Repository: [https://github.com/Pepperjack-svg/Sentiment-Analysis.git](https://github.com/Pepperjack-svg/Sentiment-Analysis.git)
-
 ---
 
 ## Overview
