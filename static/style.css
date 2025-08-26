@@ -5,9 +5,6 @@
   --muted: #9ca3af;
   --card: #151518;
   --border: #27272a;
-  --green: #16a34a;
-  --amber: #f59e0b;
-  --red: #ef4444;
 }
 
 * { box-sizing: border-box; }
@@ -44,8 +41,7 @@ input[type="file"] { width: 100%; }
 
 .or { color: var(--muted); text-align: center; margin: 6px 0; }
 
-.error { color: #ffb4b4; background: #3b1d1d; border: 1px solid #5b2a2a; padding: 8px 10px; border-radius: 8px; }
-
+.messages { margin: 10px 0 0; padding-left: 18px; color: #ffd2d2; }
 .table-wrap { overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 thead th {
@@ -61,4 +57,7 @@ tbody td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align:
 }
 .pill.emo { background: #1a1623; border-color: #332b49; }
 
-.dist span { display: inline-block; width: 18px; text-align: center; background: #1f1f24; border-radius: 5px; margin-right: 4px; border: 1px solid var(--border); }
+.dist .dist-chip {
+  display: inline-block; padding: 0 6px; margin-right: 4px;
+  background: #1f1f24; border: 1px solid var(--border); border-radius: 6px;
+}

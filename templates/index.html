@@ -21,14 +21,19 @@
         </div>
         <div class="or">— or —</div>
         <div class="form-group">
-          <label>Upload CSV (must include a <code>text</code> column)</label>
+          <label>Upload CSV (any delimiter; malformed rows auto-skipped)</label>
           <input type="file" name="file" accept=".csv"/>
         </div>
         <button class="btn" type="submit">Analyze</button>
         <a class="link" href="/json" target="_blank">JSON API quick start</a>
       </form>
-      {% if error %}
-        <div class="error">{{ error }}</div>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for m in messages %}
+            <li>{{ m }}</li>
+          {% endfor %}
+        </ul>
       {% endif %}
     </section>
 
@@ -43,10 +48,10 @@
                 <th>#</th>
                 <th>Text</th>
                 <th>Sentiment</th>
-                <th>Score</th>
+                <th>Confidence</th>
                 <th>Rating</th>
                 <th>Emotion</th>
-                <th>Distribution</th>
+                <th>Top-3 Emotions</th>
               </tr>
             </thead>
             <tbody>
@@ -54,25 +59,19 @@
               <tr>
                 <td>{{ loop.index }}</td>
                 <td class="text-cell">{{ r.text }}</td>
-                <td>
-                  <span class="pill">{{ r.sentiment }}</span>
-                </td>
+                <td><span class="pill">{{ r.sentiment }}</span></td>
                 <td>{{ "%.2f"|format(r.sentiment_score*100) }}%</td>
                 <td>
-                  {% if r.rating_stars %}
-                    {{ "★" * r.rating_stars }}{{ "☆" * (5 - r.rating_stars) }}
-                    <small>({{ r.rating_stars }}/5)</small>
-                  {% else %}
-                    —
-                  {% endif %}
+                  {{ r.stars_display }}
+                  {% if r.rating_stars %}<small>({{ r.rating_stars }}/5)</small>{% endif %}
                 </td>
                 <td>
-                  <span class="pill emo">{{ EMOJI.get(r.emotion, "🎯") }} {{ r.emotion|capitalize }}</span>
+                  <span class="pill emo">{{ r.emotion_emoji }} {{ r.emotion_label }}</span>
                   <small>{{ "%.2f"|format(r.emotion_score*100) }}%</small>
                 </td>
                 <td class="dist">
-                  {% for k, v in r.emotion_dist.items() %}
-                    <span title="{{ k }}">{{ k[0]|upper }}</span> {{ "%.0f"|format(v*100) }}{% if not loop.last %}, {% endif %}
+                  {% for lbl, prob in r.emotion_top3 %}
+                    <span class="dist-chip">{{ lbl.capitalize() }}</span> {{ "%.0f"|format(prob*100) }}{% if not loop.last %}, {% endif %}
                   {% endfor %}
                 </td>
               </tr>
@@ -86,7 +85,11 @@
   </main>
 
   <footer>
-    <small>Models: cardiffnlp/twitter-roberta-base-sentiment-latest • nlptown/bert-base-multilingual-uncased-sentiment • bhadresh-savani/distilbert-base-uncased-emotion</small>
+    <small>
+      Models: cardiffnlp/twitter-roberta-base-sentiment-latest •
+      nlptown/bert-base-multilingual-uncased-sentiment •
+      bhadresh-savani/distilbert-base-uncased-emotion
+    </small>
   </footer>
 </body>
 </html>
