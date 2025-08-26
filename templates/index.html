@@ -60,7 +60,7 @@
                 <td>{{ "%.2f"|format(r.sentiment_score*100) }}%</td>
                 <td>
                   {% if r.rating_stars %}
-                    {{ "★"|repeat(r.rating_stars) }}{{ "☆"|repeat(5 - r.rating_stars) }}
+                    {{ "★" * r.rating_stars }}{{ "☆" * (5 - r.rating_stars) }}
                     <small>({{ r.rating_stars }}/5)</small>
                   {% else %}
                     —
