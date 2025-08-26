@@ -13,6 +13,7 @@
   </header>
 
   <main>
+    <!-- Input form -->
     <section class="card">
       <form action="/analyze" method="post" enctype="multipart/form-data" class="grid">
         <div class="form-group">
@@ -25,7 +26,7 @@
           <input type="file" name="file" accept=".csv"/>
         </div>
         <button class="btn" type="submit">Analyze</button>
-        <!--<a class="link" href="/json" target="_blank">JSON API quick start</a> -->
+        <!--<a class="link" href="/json" target="_blank">JSON API quick start</a>-->
       </form>
 
       {% if messages %}
@@ -37,10 +38,14 @@
       {% endif %}
     </section>
 
+    <!-- Results -->
     {% if results is not none and results %}
     <section class="card">
       <details open>
         <summary>Show Results ({{ results|length }})</summary>
+        <div style="margin:10px 0;">
+          <!--<a class="btn" href="/download/results.json">Download JSON (pretty)</a>-->
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -83,12 +88,14 @@
     </section>
     {% endif %}
 
+    <!-- Recent feed -->
     <section class="card">
       <details {% if not results %}open{% endif %}>
         <summary>Recent Feed (saved until the app restarts) — {{ recent|length }}</summary>
         <form action="/recent/clear" method="post" style="margin:10px 0;">
           <button class="btn" type="submit">Clear Recent</button>
           <a class="link" style="margin-left:12px;" href="/api/recent" target="_blank">View as JSON</a>
+          <a class="link" style="margin-left:12px;" href="/download/recent.json">Download JSON</a>
         </form>
         {% if recent and recent|length > 0 %}
         <div class="table-wrap">
@@ -107,9 +114,18 @@
               <tr>
                 <td>{{ r.ts }}</td>
                 <td class="text-cell">{{ r.text }}</td>
-                <td><span class="pill">{{ r.sentiment }}</span> <small>({{ "%.0f"|format(r.sentiment_score*100) }}%)</small></td>
-                <td>{{ r.stars_display }} {% if r.rating_stars %}<small>({{ r.rating_stars }}/5)</small>{% endif %}</td>
-                <td><span class="pill emo">{{ r.emotion_emoji }} {{ r.emotion_label }}</span> <small>({{ "%.0f"|format(r.emotion_score*100) }}%)</small></td>
+                <td>
+                  <span class="pill">{{ r.sentiment }}</span>
+                  <small>({{ "%.0f"|format(r.sentiment_score*100) }}%)</small>
+                </td>
+                <td>
+                  {{ r.stars_display }}
+                  {% if r.rating_stars %}<small>({{ r.rating_stars }}/5)</small>{% endif %}
+                </td>
+                <td>
+                  <span class="pill emo">{{ r.emotion_emoji }} {{ r.emotion_label }}</span>
+                  <small>({{ "%.0f"|format(r.emotion_score*100) }}%)</small>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
