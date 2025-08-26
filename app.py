@@ -238,8 +238,8 @@ def analyze_many(texts: List[str]) -> List[dict]:
             "emotion_label": final_lbl.capitalize(),
             "emotion_score": round(final_p, 4),
             "emotion_emoji": EMOTION_EMOJI.get(final_lbl, "🎯"),
-            "emotion_top3": [(lbl, round(prob, 4)) for lbl, prob in top3],
-            "emotion_dist": {k: round(dist[k], 4) for k in EMOTION_LABELS},
+           # "emotion_top3": [(lbl, round(prob, 4)) for lbl, prob in top3],
+           # "emotion_dist": {k: round(dist[k], 4) for k in EMOTION_LABELS},
         })
     return results
 
